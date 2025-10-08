@@ -1,3 +1,22 @@
+# Node
 node_modules/
-dist
+npm-debug.log
+package-lock.json
 .env
+
+# Build outputs
+dist/
+build/
+public/build/
+vite-dist/
+
+# TypeScript
+*.tsbuildinfo
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Render / temp
+tmp/
+.cache/

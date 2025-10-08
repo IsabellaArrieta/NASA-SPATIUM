@@ -3,8 +3,6 @@ import { createServer } from "http";
 import { Server } from "socket.io";
 import path from "path";
 
-
-
 // Importaciones opcionales con manejo de errores
 let ChatGateway, chatRouter, chatService;
 try {
@@ -34,17 +32,15 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.static(path.join(__dirname, "../public")));
+// ✅ Servir archivos estáticos desde la raíz del proyecto (NO desde backend/)
+const publicPath = path.join(__dirname, "../../public");
+app.use(express.static(publicPath));
+console.log(`📁 Sirviendo archivos estáticos desde: ${publicPath}`);
+
 // Rutas de API (solo si existe chat)
 if (chatRouter) {
   app.use("/api/chat", chatRouter);
 }
-
-// Servir archivos estáticos desde backend/
-const backendPath = path.join(__dirname, "../../");
-app.use(express.static(backendPath));
-
-console.log(`📁 Sirviendo archivos estáticos desde: ${backendPath}`);
 
 // Crear servidor HTTP
 const httpServer = createServer(app);
@@ -58,11 +54,7 @@ if (ChatGateway && chatService) {
     new ChatGateway(io, chatService);
     console.log("✅ Chat Gateway inicializado");
   } catch (error) {
-    if (error instanceof Error) {
-      console.error("❌ Error inicializando Chat:", error.message);
-    } else {
-      console.error("❌ Error inicializando Chat:", error);
-    }
+    console.error("❌ Error inicializando Chat:", error);
   }
 }
 
@@ -77,32 +69,24 @@ console.log("✅ Simulation Gateway inicializado");
 // Inicializar Game Gateway
 io.on("connection", (socket) => {
   console.log(`🎮 Player connected: ${socket.id}`);
-  
   try {
     const gameController = new GameController(io, gameService);
     gameController.registerHandlers(socket);
-    
-    // Registrar handlers de simulación
     simulationGateway.registerClientHandlers(socket);
   } catch (error) {
-    if (error instanceof Error) {
-      console.error(`❌ Error registrando handlers para ${socket.id}:`, error.message);
-    } else {
-      console.error(`❌ Error registrando handlers para ${socket.id}:`, error);
-    }
+    console.error(`❌ Error registrando handlers para ${socket.id}:`, error);
   }
 });
 
-// Ruta principal - servir combined.html
-// Ruta principal - servir index.html del juego
+// ✅ Ruta principal - servir index.html desde /public (raíz)
 app.get("/", (req, res) => {
-  const htmlPath = path.join(__dirname, "../public/index.html");
+  const htmlPath = path.join(__dirname, "../../public/index.html");
   console.log(`📄 Sirviendo juego desde: ${htmlPath}`);
   res.sendFile(htmlPath, (err) => {
     if (err) {
       console.error("❌ Error sirviendo index.html:", err);
       res.status(500).send(`
-        <h1>🚀 Servidor backend de NASA-SPACECREW2025</h1>
+        <h1>🚀 Servidor backend de NASA-SPATIUM</h1>
         <p>Error: No se encontró index.html en /public</p>
         <p>Ruta esperada: <code>${htmlPath}</code></p>
       `);
@@ -110,23 +94,21 @@ app.get("/", (req, res) => {
   });
 });
 
-
 // Health check
 app.get("/health", (req, res) => {
-  res.json({ 
+  res.json({
     status: "ok",
-    port: 4000,
-    timestamp: new Date().toISOString()
+    port: process.env.PORT || 4000,
+    timestamp: new Date().toISOString(),
   });
 });
 
 // Iniciar servidor
 const PORT = process.env.PORT || 4000;
-
 httpServer.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════╗
-║  🚀 Backend NASA-SPATIUM         ║
+║  🚀 Backend NASA-SPATIUM              ║
 ╠═══════════════════════════════════════╣
 ║  Puerto: ${PORT}                            ║
 ║  URL: http://localhost:${PORT}              ║
@@ -141,11 +123,9 @@ httpServer.listen(PORT, () => {
 process.on("uncaughtException", (error) => {
   console.error("❌ Error no capturado:", error);
 });
-
-process.on("unhandledRejection", (reason, promise) => {
+process.on("unhandledRejection", (reason) => {
   console.error("❌ Promesa rechazada no manejada:", reason);
 });
-
 process.on("SIGINT", () => {
   console.log("\n👋 Cerrando servidor...");
   simulationGateway.stop();

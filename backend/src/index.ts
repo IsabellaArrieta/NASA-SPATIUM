@@ -94,23 +94,22 @@ io.on("connection", (socket) => {
 });
 
 // Ruta principal - servir combined.html
+// Ruta principal - servir index.html del juego
 app.get("/", (req, res) => {
-  const htmlPath = path.join(__dirname, "combined.html");
-  console.log(`📄 Intentando servir: ${htmlPath}`);
-  
+  const htmlPath = path.join(__dirname, "../public/index.html");
+  console.log(`📄 Sirviendo juego desde: ${htmlPath}`);
   res.sendFile(htmlPath, (err) => {
     if (err) {
-      console.error("❌ Error sirviendo HTML:", err);
+      console.error("❌ Error sirviendo index.html:", err);
       res.status(500).send(`
         <h1>🚀 Servidor backend de NASA-SPACECREW2025</h1>
-        <p>Servidor funcionando en puerto 4000</p>
-        <p><strong>Error:</strong> No se encontró combined.html en backend/</p>
-        <p>Ubicación esperada: <code>${htmlPath}</code></p>
-        <p>Conéctate desde tu cliente a: <code>http://localhost:4000</code></p>
+        <p>Error: No se encontró index.html en /public</p>
+        <p>Ruta esperada: <code>${htmlPath}</code></p>
       `);
     }
   });
 });
+
 
 // Health check
 app.get("/health", (req, res) => {
@@ -127,7 +126,7 @@ const PORT = process.env.PORT || 4000;
 httpServer.listen(PORT, () => {
   console.log(`
 ╔═══════════════════════════════════════╗
-║  🚀 Backend NASA-SPACECREW2025         ║
+║  🚀 Backend NASA-SPATIUM         ║
 ╠═══════════════════════════════════════╣
 ║  Puerto: ${PORT}                            ║
 ║  URL: http://localhost:${PORT}              ║
